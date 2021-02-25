@@ -290,16 +290,6 @@ class MapEditor {
 	}
 }
 
-// const sprite = []
-// sprite.push([0, 3, 3, 3, 3, 3, 3, 0])
-// sprite.push([3, 0, 0, 0, 0, 0, 0, 3])
-// sprite.push([3, 0, 3, 0, 0, 3, 0, 3])
-// sprite.push([3, 0, 0, 0, 0, 0, 0, 3])
-// sprite.push([3, 0, 0, 0, 0, 0, 0, 3])
-// sprite.push([3, 0, 3, 3, 3, 3, 0, 3])
-// sprite.push([3, 0, 0, 0, 0, 0, 0, 3])
-// sprite.push([0, 3, 3, 3, 3, 3, 3, 0])
-
 const colors = []
 colors.push([155, 188, 15])
 colors.push([139, 172, 15])
@@ -307,12 +297,8 @@ colors.push([48, 98, 48])
 colors.push([15, 56, 15])
 
 const colorSelector = new ColorSelector(10, 10, colors, 40)
-
 const spriteEditor = new SpriteEditor(70, 10, 8, 8, 20, colorSelector)
-// spriteEditor.load(sprite)
-
 const spritePalette = new SpritePalette(250, 10, 14, 4, 5, spriteEditor)
-
 const mapEditor = new MapEditor(10, 190, 20, 18, spritePalette)
 
 function setup() {
@@ -339,21 +325,14 @@ function draw() {
 }
 
 function mouseClicked(evt) {
-	colorSelector.mouseClicked(evt)
-	spriteEditor.mouseClicked(evt)
-	spritePalette.mouseClicked(evt)
-	mapEditor.mouseClicked(evt)
+	colorSelector.mouseClicked({ clientX: mouseX, clientY: mouseY })
+	spriteEditor.mouseClicked({ clientX: mouseX, clientY: mouseY })
+	spritePalette.mouseClicked({ clientX: mouseX, clientY: mouseY })
+	mapEditor.mouseClicked({ clientX: mouseX, clientY: mouseY })
 }
 
 function mouseDragged(evt) {
-	colorSelector.mouseClicked(evt)
-	spriteEditor.mouseClicked(evt)
-	mapEditor.mouseClicked(evt)
-}
-
-function keyPressed(evt) {
-	console.log(evt)
-	if (evt.code === 'KeyD') {
-		spriteEditor.dump()
-	}
+	colorSelector.mouseClicked({ clientX: mouseX, clientY: mouseY })
+	spriteEditor.mouseClicked({ clientX: mouseX, clientY: mouseY })
+	mapEditor.mouseClicked({ clientX: mouseX, clientY: mouseY })
 }
