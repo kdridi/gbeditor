@@ -1,3 +1,44 @@
+const sprite2code = (sprite) => {
+	function decimalToHex(num, base, padding = 2) {
+		let hex = Number(num).toString(base)
+		while (hex.length < padding) {
+			hex = '0' + hex
+		}
+		return hex
+	}
+
+	const data = sprite.map((line) =>
+		line.map((color) => {
+			return Array.from(decimalToHex(color, 2)).map((a) => parseInt(a))
+		})
+	)
+
+	const bits = new Array(2).fill(0).map((_, i) =>
+		data.map((line) => {
+			const value = parseInt(line.map((arr) => arr[i]).join(''), 2)
+			return `0x${decimalToHex(value, 16, 2)}`
+		})
+	)
+
+	const transpose = (m) => {
+		const values = Array.prototype.concat.apply(
+			[],
+			m[0].map((x, i) => {
+				const arr = m.map((x) => x[i])
+				arr.push(arr.shift())
+				return arr
+			})
+		)
+		const len = values.length / 2
+		const result = []
+		result.push(values.splice(0, len).join(', '))
+		result.push(values.splice(0, len).join(', '))
+		return result
+	}
+
+	return transpose(bits)
+}
+
 class ColorSelector {
 	constructor(x, y, colors, s) {
 		Object.assign(this, { selectedIndex: 0, props: { x, y, colors, s } })
@@ -82,51 +123,17 @@ class SpriteEditor {
 	}
 
 	clip() {
-		function decimalToHex(num, base, padding = 2) {
-			let hex = Number(num).toString(base)
-			while (hex.length < padding) {
-				hex = '0' + hex
-			}
-			return hex
+		const lines = sprite2code(this.array)
+
+		const result = []
+		result.push('extern const unsigned char sprite[] =')
+		result.push('{')
+		while (lines.length > 0) {
+			result.push(`\t${lines.shift()},`)
 		}
+		result.push('};')
 
-		const data = this.array.map((line) =>
-			line.map((color) => {
-				return Array.from(decimalToHex(color, 2)).map((a) => parseInt(a))
-			})
-		)
-
-		const bits = new Array(2).fill(0).map((_, i) =>
-			data.map((line) => {
-				const value = parseInt(line.map((arr) => arr[i]).join(''), 2)
-				return `0x${decimalToHex(value, 16, 2)}`
-			})
-		)
-
-		const transpose = (m) => {
-			const values = Array.prototype.concat.apply(
-				[],
-				m[0].map((x, i) => {
-					const arr = m.map((x) => x[i])
-					arr.push(arr.shift())
-					return arr
-				})
-			)
-			const len = values.length / 2
-			const result = []
-			result.push('const unsigned char data[] =')
-			result.push('{')
-			result.push('\t' + values.splice(0, len).join(', ') + ',')
-			result.push('\t' + values.splice(0, len).join(', ') + ',')
-			result.push('};')
-			return result.join('\n')
-		}
-
-		const code = transpose(bits)
-		document.execCommand('copy', true, code)
-		// console.log(code)
-
-		navigator.clipboard.writeText(code).then(
+		navigator.clipboard.writeText(result.join('\n')).then(
 			function () {
 				// console.log('SUCCESS')
 			},
@@ -159,19 +166,23 @@ class SpritePalette {
 		pop()
 	}
 
+	get(sx, sy) {
+		const sprite = JSON.parse(JSON.stringify(this.props.spriteEditor.array))
+		sprite.forEach((line, i) => {
+			line.forEach((color, j) => {
+				const y = i + sy * this.props.spriteEditor.props.h
+				const x = j + sx * this.props.spriteEditor.props.w
+				sprite[i][j] = this.array[y][x]
+			})
+		})
+		return sprite
+	}
+
 	select(x, y, update) {
 		this.selectedX = x
 		this.selectedY = y
 		if (update) {
-			const sprite = JSON.parse(JSON.stringify(this.props.spriteEditor.array))
-			sprite.forEach((line, i) => {
-				line.forEach((color, j) => {
-					const y = i + this.selectedY * this.props.spriteEditor.props.h
-					const x = j + this.selectedX * this.props.spriteEditor.props.w
-					sprite[i][j] = this.array[y][x]
-				})
-			})
-			this.props.spriteEditor.load(sprite)
+			this.props.spriteEditor.load(this.get(this.selectedX, this.selectedY))
 		}
 	}
 
@@ -193,7 +204,35 @@ class SpritePalette {
 		const y = Math.floor((clientY - props.y) / (props.s * this.props.spriteEditor.props.h))
 		if (0 <= x && x < props.w && 0 <= y && y < props.h) {
 			this.select(x, y, true)
+			this.clip()
 		}
+	}
+
+	clip() {
+		const result = []
+		result.push(`#define NB_TILES ${this.props.h * this.props.w}`)
+		result.push('')
+		result.push('extern const unsigned char tileset[];')
+		result.push('')
+		result.push('extern const unsigned char tileset[] =')
+		result.push('{')
+
+		for (let y = 0; y < this.props.h; y++) {
+			for (let x = 0; x < this.props.w; x++) {
+				const lines = sprite2code(this.get(x, y))
+				result.push(`\t${lines.join(', ')},`)
+			}
+		}
+		result.push('};')
+
+		navigator.clipboard.writeText(result.join('\n')).then(
+			function () {
+				// console.log('SUCCESS')
+			},
+			function () {
+				// console.log('FAILURE')
+			}
+		)
 	}
 }
 
