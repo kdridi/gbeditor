@@ -66,9 +66,10 @@ class SpriteEditor {
 		const y = Math.floor((clientY - props.y) / props.s)
 		if (0 <= x && x < props.w && 0 <= y && y < props.h) {
 			this.array[y][x] = props.colorSelector.selectedIndex
-		}
-		if (this.palette !== null) {
-			this.palette.load(this.array)
+			if (this.palette !== null) {
+				this.palette.load(this.array)
+			}
+			this.clip()
 		}
 	}
 
@@ -78,6 +79,61 @@ class SpriteEditor {
 
 	dump() {
 		console.log(JSON.stringify(this.array))
+	}
+
+	clip() {
+		function decimalToHex(num, base, padding = 2) {
+			let hex = Number(num).toString(base)
+			while (hex.length < padding) {
+				hex = '0' + hex
+			}
+			return hex
+		}
+
+		const data = this.array.map((line) =>
+			line.map((color) => {
+				return Array.from(decimalToHex(color, 2)).map((a) => parseInt(a))
+			})
+		)
+
+		const bits = new Array(2).fill(0).map((_, i) =>
+			data.map((line) => {
+				const value = parseInt(line.map((arr) => arr[i]).join(''), 2)
+				return `0x${decimalToHex(value, 16, 2)}`
+			})
+		)
+
+		const transpose = (m) => {
+			const values = Array.prototype.concat.apply(
+				[],
+				m[0].map((x, i) => {
+					const arr = m.map((x) => x[i])
+					arr.push(arr.shift())
+					return arr
+				})
+			)
+			const len = values.length / 2
+			const result = []
+			result.push('const unsigned char data[] =')
+			result.push('{')
+			result.push('\t' + values.splice(0, len).join(', ') + ',')
+			result.push('\t' + values.splice(0, len).join(', ') + ',')
+			result.push('};')
+			return result.join('\n')
+		}
+
+		const code = transpose(bits)
+		document.execCommand('copy', true, code)
+		// console.log(code)
+
+		navigator.clipboard.writeText(code).then(
+			function () {
+				// console.log('SUCCESS')
+			},
+			function () {
+				// console.log('FAILURE')
+			}
+		)
 	}
 }
 
