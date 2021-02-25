@@ -303,14 +303,8 @@ const mapEditor = new MapEditor(10, 190, 20, 18, spritePalette)
 
 function setup() {
 	createCanvas(820, 920)
-	const data = JSON.parse(getItem('data'))
-	if (data !== null) {
-		spritePalette.array = data
-	}
-	const map = JSON.parse(getItem('map'))
-	if (map !== null) {
-		mapEditor.array = map
-	}
+	spritePalette.array = JSON.parse(getItem('data')) || template.data
+	mapEditor.array = JSON.parse(getItem('map')) || template.map
 	frameRate(10)
 	spritePalette.select(0, 0, true)
 	pixelDensity(1)
