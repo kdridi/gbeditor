@@ -155,7 +155,7 @@ class MapEditor {
 		this.array.forEach((line, i) => {
 			line.forEach((sprite, j) => {
 				const sj = sprite % props.spritePalette.props.w
-				const si = sprite - sj
+				const si = (sprite - sj) / props.spritePalette.props.w
 
 				const sw = props.spritePalette.props.s * props.spritePalette.props.spriteEditor.props.w
 				const sh = props.spritePalette.props.s * props.spritePalette.props.spriteEditor.props.h
