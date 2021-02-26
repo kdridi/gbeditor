@@ -289,7 +289,38 @@ class MapEditor {
 		const y = Math.floor((clientY - props.y) / sh)
 		if (0 <= x && x < props.w && 0 <= y && y < props.h) {
 			this.array[y][x] = props.spritePalette.selectedX + props.spritePalette.selectedY * props.spritePalette.props.w
+			this.clip()
 		}
+	}
+
+	serialize() {
+		const [a, b, c, d, ...palette] = this.props.spritePalette.serialize().split('\n')
+
+		const lines = this.array.map((line) => line.map((value) => `0x${num2str(value, 16, 2)}`).join(', '))
+
+		const result = []
+		result.push(`${a}`)
+		result.push(`${b}`)
+		result.push(`#define MAP_W ${this.props.w}`)
+		result.push(`#define MAP_H ${this.props.h}`)
+		result.push('')
+		result.push(`${c}`)
+		result.push('extern const unsigned char map[];')
+		result.push(`${d}`)
+		result.push(`${palette.join('\n')}`)
+		result.push('')
+		result.push('extern const unsigned char map[] =')
+		result.push('{')
+		while (lines.length > 0) {
+			result.push(`\t${lines.shift()},`)
+		}
+		result.push('};')
+
+		return result.join('\n')
+	}
+
+	clip() {
+		sendToClipboard(this.serialize())
 	}
 }
 
