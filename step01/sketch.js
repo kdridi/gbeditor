@@ -1,3 +1,14 @@
+const sendToClipboard = (data) => {
+	navigator.clipboard.writeText(data).then(
+		function () {
+			// console.log('SUCCESS')
+		},
+		function () {
+			// console.log('FAILURE')
+		}
+	)
+}
+
 const sprite2code = (sprite) => {
 	function decimalToHex(num, base, padding = 2) {
 		let hex = Number(num).toString(base)
@@ -122,7 +133,7 @@ class SpriteEditor {
 		console.log(JSON.stringify(this.array))
 	}
 
-	clip() {
+	serialize() {
 		const lines = sprite2code(this.array)
 
 		const result = []
@@ -133,14 +144,11 @@ class SpriteEditor {
 		}
 		result.push('};')
 
-		navigator.clipboard.writeText(result.join('\n')).then(
-			function () {
-				// console.log('SUCCESS')
-			},
-			function () {
-				// console.log('FAILURE')
-			}
-		)
+		return result.join('\n')
+	}
+
+	clip() {
+		sendToClipboard(this.serialize())
 	}
 }
 
@@ -208,7 +216,7 @@ class SpritePalette {
 		}
 	}
 
-	clip() {
+	serialize() {
 		const result = []
 		result.push(`#define NB_TILES ${this.props.h * this.props.w}`)
 		result.push('')
@@ -225,14 +233,11 @@ class SpritePalette {
 		}
 		result.push('};')
 
-		navigator.clipboard.writeText(result.join('\n')).then(
-			function () {
-				// console.log('SUCCESS')
-			},
-			function () {
-				// console.log('FAILURE')
-			}
-		)
+		return result.join('\n')
+	}
+
+	clip() {
+		sendToClipboard(this.serialize())
 	}
 }
 
