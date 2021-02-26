@@ -9,25 +9,23 @@ const sendToClipboard = (data) => {
 	)
 }
 
-const sprite2code = (sprite) => {
-	function decimalToHex(num, base, padding = 2) {
-		let hex = Number(num).toString(base)
-		while (hex.length < padding) {
-			hex = '0' + hex
-		}
-		return hex
-	}
+const num2str = (num, base, padding = 4) => {
+	const hex = Number(num).toString(base)
+	const len = padding - hex.length
+	return `${new Array(len < 0 ? 0 : len).fill(0).join('')}${hex}`
+}
 
+const sprite2code = (sprite) => {
 	const data = sprite.map((line) =>
 		line.map((color) => {
-			return Array.from(decimalToHex(color, 2)).map((a) => parseInt(a))
+			return Array.from(num2str(color, 2, 2)).map((a) => parseInt(a))
 		})
 	)
 
 	const bits = new Array(2).fill(0).map((_, i) =>
 		data.map((line) => {
 			const value = parseInt(line.map((arr) => arr[i]).join(''), 2)
-			return `0x${decimalToHex(value, 16, 2)}`
+			return `0x${num2str(value, 16, 2)}`
 		})
 	)
 
