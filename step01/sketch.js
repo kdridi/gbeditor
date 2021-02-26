@@ -1,3 +1,11 @@
+const resetArray = (array) => {
+	array.forEach((line, i) => {
+		line.forEach((_, j) => {
+			array[i][j] = 0
+		})
+	})
+}
+
 const sendToClipboard = (data) => {
 	navigator.clipboard.writeText(data).then(
 		function () {
@@ -87,6 +95,10 @@ class ColorSelector {
 	colorAt(index) {
 		return this.props.colors[index]
 	}
+
+	reset() {
+		this.selectedIndex = 0
+	}
 }
 
 class SpriteEditor {
@@ -147,6 +159,11 @@ class SpriteEditor {
 
 	clip() {
 		sendToClipboard(this.serialize())
+	}
+
+	reset() {
+		resetArray(this.array)
+		this.props.colorSelector.reset()
 	}
 }
 
@@ -237,12 +254,20 @@ class SpritePalette {
 	clip() {
 		sendToClipboard(this.serialize())
 	}
+
+	reset() {
+		resetArray(this.array)
+		this.selectedX = 0
+		this.selectedY = 0
+		this.props.spriteEditor.reset()
+		storeItem('data', JSON.stringify(this.array))
+	}
 }
 
 class MapEditor {
 	constructor(x, y, w, h, spritePalette) {
 		const array = new Array(h).fill().map(() => new Array(w).fill().map(() => 0))
-		Object.assign(this, { selectedX: 0, selectedY: 0, array, props: { x, y, w, h, spritePalette } })
+		Object.assign(this, { array, props: { x, y, w, h, spritePalette } })
 		spritePalette.palette = this
 	}
 
@@ -322,6 +347,12 @@ class MapEditor {
 	clip() {
 		sendToClipboard(this.serialize())
 	}
+
+	reset() {
+		resetArray(this.array)
+		this.props.spritePalette.reset()
+		storeItem('map', JSON.stringify(this.array))
+	}
 }
 
 const colors = []
@@ -363,4 +394,10 @@ function mouseDragged(evt) {
 	colorSelector.mouseClicked({ clientX: mouseX, clientY: mouseY })
 	spriteEditor.mouseClicked({ clientX: mouseX, clientY: mouseY })
 	mapEditor.mouseClicked({ clientX: mouseX, clientY: mouseY })
+}
+
+function keyPressed({ code }) {
+	if (code === 'Backspace') {
+		mapEditor.reset()
+	}
 }
